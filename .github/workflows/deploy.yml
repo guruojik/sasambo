@@ -1,0 +1,54 @@
+name: Deploy MPI Sasambo to GitHub Pages
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup GitHub Pages
+        uses: actions/configure-pages@v4
+
+      - name: Install Unrar & Extract Files
+        run: |
+          # Menginstall aplikasi unrar di server GitHub
+          sudo apt-get update && sudo apt-get install -y unrar
+          
+          # Mengekstrak file part1 (otomatis mendeteksi part2)
+          unrar x -o+ *.part1.rar .
+          
+          # Memastikan file utama index.html berada di folder terluar (root)
+          if [ ! -f index.html ]; then
+            mv */index.html . 2>/dev/null || true
+            mv */book . 2>/dev/null || true
+            mv */css . 2>/dev/null || true
+            mv */images . 2>/dev/null || true
+            mv */js . 2>/dev/null || true
+          fi
+
+      - name: Upload Website Artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: '.'
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
