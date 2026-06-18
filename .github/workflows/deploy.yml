@@ -27,13 +27,13 @@ jobs:
       - name: Setup GitHub Pages
         uses: actions/configure-pages@v4
 
-      - name: Install Unrar & Extract Files
+      - name: Extract Media Files
         run: |
-          # Menginstall aplikasi unrar di server GitHub
-          sudo apt-get update && sudo apt-get install -y unrar
+          # Install tool unrar dan 7zip untuk mengantisipasi semua jenis kompresi
+          sudo apt-get update && sudo apt-get install -y unrar p7zip-full
           
-          # Mengekstrak file part1 (otomatis mendeteksi part2)
-          unrar x -o+ *.part1.rar .
+          # Ekstraksi otomatis: mencoba unrar dulu, jika gagal pakai 7z
+          unrar x -o+ *.part1.rar . || 7z x *.001 -o. || 7z x *.zip -o. || true
           
           # Memastikan file utama index.html berada di folder terluar (root)
           if [ ! -f index.html ]; then
